@@ -11,11 +11,11 @@ class Node {
             //-----------Getters 
 
         int getVal(int);
-        int getSize();
         Node* getChild(int);
+        int getSize();
         Node* getParent();
 
-            //-----------Setters
+            //-----------Setters 
 
         void setVal(int,int);
         void setSize(int);
@@ -25,7 +25,10 @@ class Node {
             //-----------Methods 
 
         bool isLeaf();
+        void remove(int);
         int insert(int);
+        int getIdx(int);
+
     private:
             //-----------Attributes 
         int val[3];
@@ -50,14 +53,17 @@ class BTree {
         void display();
 
         void insert(int);
+        Node* search(int);
         void remove(int);
-        bool search(int);
 
     private:
             //-----------Methods 
+        void removeAtLeaf(Node*, int);
+        void transferFuse(Node*, int);
+        void remove(Node*, int);
+        void cascade(Node*, Node*, int);
         int sort(int[]);
         void destructor(Node*);
-        void cascade(Node*, Node*, int);
 };
 
 #endif

@@ -2,13 +2,16 @@
 #include <iostream>
 #include <queue>
 
-//--------------------------------------Node Class---------------------------------------------------------
-//------------Constructor---------------
+//--------------------------------------Node Class---------------------------------------------------------------------------------------------------
+//------------Constructor / Destructor-------------------------- 
 Node::Node() : size(0), parent(nullptr) {
     for(int i = 0; i < 4; i++){children[i] = nullptr;}
 }
+Node::~Node() {
+    for(int i = 0; i < 4; i++){children[i] = nullptr;}
+}
 
-//------------Getters-------------------
+//------------Getters------------------------------------------- 
 int Node::getVal(int idx) {
     if(idx >= 0 && idx < 3) {
         return val[idx];
@@ -24,7 +27,7 @@ Node* Node::getChild(int idx) {
 int Node::getSize() {return size;}
 Node* Node::getParent() {return parent;}
 
-//------------Setters-------------------
+//------------Setters------------------------------------------- 
 void Node::setVal(int idx, int value) {
     if(idx >= 0 && idx < 3) {
         val[idx] = value;
@@ -42,9 +45,21 @@ void Node::setChild(int idx, Node* node) {
 }
 void Node::setParent(Node* node) {parent = node;}
 
-//------------Methods-------------------
+//------------Methods------------------------------------------- 
 bool Node::isLeaf(){
 return children[0] == nullptr && children[1] == nullptr && children[2] == nullptr && children[3] == nullptr;
+}
+
+void Node::remove(int value) {
+    for(int i = 0; i < size; i++) {
+        if(val[i] == value) {
+            for(int j = i; j < size-1; j++) {
+                val[j] = val[j+1];
+            }
+            size--;
+            break;
+        }
+    }
 }
 
 int Node::insert(int value) {
@@ -67,22 +82,33 @@ int Node::insert(int value) {
             //[1,2,3], size = 2, insert 2, i = 1
 }
 
-//------------Destructor----------------
-Node::~Node() {
-    for(int i = 0; i < 4; i++){children[i] = nullptr;}
+int Node::getIdx(int value) {
+    for(int i = 0; i < size; i++) {
+        if(value < val[i]) {
+            return i;
+        }
+    }
+    return size;
 }
 
-//--------------------------------------BTree Class-----------------------------------------------------------
-//------------Constructor---------------
-BTree::BTree() : root(nullptr) {}
 
+
+//--------------------------------------BTree Class--------------------------------------------------------------------------------------------------
+//------------Constructor / Destructor-------------------------- 
+BTree::BTree() : root(nullptr) {}
+BTree::~BTree() {
+    destructor(root);
+    root = nullptr;
+}
+
+
+//------------Methods------------------------------------------- 
 void BTree::display() {
     if(root == nullptr) {
         return;
     }
     std::queue<Node*> q;
     q.push(root);
-    int level = 0;
     while(!q.empty()) {
         Node* curr = q.front();
         q.pop();
@@ -123,7 +149,7 @@ void BTree::insert(int value) {
     }
 }
 
-bool BTree::search(int value) {
+Node* BTree::search(int value) {
     Node* temp = root;
     while(temp != nullptr) {
         for(int i = 0; i < temp->getSize()+1; i++) {
@@ -131,19 +157,110 @@ bool BTree::search(int value) {
                 temp = temp->getChild(i);
                 break;
             } else if(value == temp->getVal(i)) {
-                return true;
+                return temp;
             }
         }
     }
-    return false;
+    return nullptr;
 }
 
-void BTree::remove(int value){}
+//When deleting an element there are Quite a bit of possibilites, the easiest one is when the size of the node is > 1 
+void BTree::remove(int value){
+    Node* toDel = search(value);
+    if(toDel == nullptr || toDel->getSize() < 1) {  //Error Handling 
+        std::cout << "Error trying to delete, node is either nullptr (value not found), or size is < 1" << std::endl;
+        return;
+    }
 
-BTree::~BTree() {
-    destructor(root);
-    root = nullptr;
+    toDel->isLeaf()? removeAtLeaf(toDel, value): remove(toDel, value);
 }
+
+void BTree::removeAtLeaf(Node* del, int value) {
+    if(del == nulptr || del->getSize < 1) {  //Error Handling 
+        std::cout << "Error, del is nullptr or size < 1" << std::endl;
+        return;
+    }
+
+    if(del->getSize() > 1) { //Easy Case 
+        del->remove(value);
+        return;
+    }
+    if(root == del) {  //Gotta check there is a parent node first 
+        root->remove(value);
+        delete(root);
+        return;
+    }
+
+    Node* parent = del->getParent();
+
+    //Need to swap and transfer 
+    int idx = parent->getIdx(value);
+    int left = (idx > 0)? parent->getChild(idx-1)->getSize() : -1;
+    int right = (idx < parent->getSize())? parent->getChild(idx+1)->getSize() : -1;
+
+    if(left > 1) {
+        value = parent->getChild(idx-1)->getVal(left-1);
+        del->setVal(0, parent->getVal(idx-1));
+        parent->setVal(idx-1, value);
+        parent->getChild(idx-1)->remove(value);
+        return;
+    }
+    if(right > 1) {
+        value = parent->getChild(idx+1)-getVal(0);
+        del->setVal(0,parent->getVal(idx));
+        parent->setVal(idx, value);
+        parent->getChild(idx+1)->remove(value);
+        return;
+    }
+    //Sibling nodes are both size 1 which means that we need to swap and fuse but we also have to check if the parent node has more than 1 val or else it will be empty 
+
+    transferFuse(del, value);
+}
+
+// All we know is that the sibling nodes are both size 1 and that the parent may or may not be size 1 as well 
+void BTree::transferFuse(Node* del, int value) {
+    if(del->getSize() > 1) { // Base case for the recursion 
+        del-remove(value);
+        return;
+    }
+    if(del == root) {  // Error handling 
+        std::cout << "Error root is trying to be deleted when there are more elements in the BTree" << std::endl;
+        return;
+    }
+
+}
+
+// Much like BST's we need to go down either the right subtree and look for the element farthest to the left and swap it with the value we want 
+// deleted, or go down the left subtreee and look for the farthest element in the right, either way this means the element we will swap will be 
+// a leaf node, in order to make it seemingly random so one side isn't 'heavier' than the other 
+void BTree::remove(Node* del, int value) {
+    if(del->isLeaf()) { // Error Handling 
+        std::cout << "Error del is a leaf for some reason" << std::endl;
+        return;
+    }
+    int idx = 0, swap = 0;
+    Node* temp = del;
+    for(int i = 1; i < del->getSize(); i++) {
+        if(value == del->getVal(i)) {
+            idx = i;
+            break;
+        }
+    }
+    if(value % 2 == 0) {  // We will be going to the left subtree 
+        temp = temp->getChild(idx);
+        while(!temp->isLeaf()) {temp = temp->getChild(temp->getSize());}
+        swap = temp->getVal(temp->getSize()-1);
+        temp->setVal(temp-getSize()-1, value);
+    } else { // We will be going into the right subtree 
+        temp = temp->getChild(idx+1);
+        while(!temp->isLeaf()) {temp = temp->getChild(0);}
+        swap = temp->getVal(0);
+        temp->setVal(0,value);
+    }
+    del->setVal(idx, swap);
+    removeAtLeaf(temp, value);
+}
+
 
 //When cascading there are 3 possibilites 
 // 1: The cascading node's parent can accept the value i.e it won't be overflowing 
