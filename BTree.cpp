@@ -168,7 +168,7 @@ Node* BTree::search(int value) {
 void BTree::remove(int value){
     Node* toDel = search(value);
     if(toDel == nullptr || toDel->getSize() < 1) {  //Error Handling 
-        std::cout << "Error trying to delete, node is either nullptr (value not found), or size is < 1" << std::endl;
+        std::cout << "Error trying to delete, node is either nullptr (value not found), or size is < 1 in remove(int) method" << std::endl;
         return;
     }
 
@@ -176,8 +176,8 @@ void BTree::remove(int value){
 }
 
 void BTree::removeAtLeaf(Node* del, int value) {
-    if(del == nulptr || del->getSize < 1) {  //Error Handling 
-        std::cout << "Error, del is nullptr or size < 1" << std::endl;
+    if(del == nullptr || del->getSize() < 1) {  //Error Handling 
+        std::cout << "Error, del is nullptr or size < 1 in removeAtLeaf(Node*) method" << std::endl;
         return;
     }
 
@@ -206,7 +206,7 @@ void BTree::removeAtLeaf(Node* del, int value) {
         return;
     }
     if(right > 1) {
-        value = parent->getChild(idx+1)-getVal(0);
+        value = parent->getChild(idx+1)->getVal(0);
         del->setVal(0,parent->getVal(idx));
         parent->setVal(idx, value);
         parent->getChild(idx+1)->remove(value);
@@ -220,22 +220,64 @@ void BTree::removeAtLeaf(Node* del, int value) {
 // All we know is that the sibling nodes are both size 1 and that the parent may or may not be size 1 as well 
 void BTree::transferFuse(Node* del, int value) {
     if(del->getSize() > 1) { // Base case for the recursion 
-        del-remove(value);
+        del->remove(value);
         return;
     }
-    if(del == root) {  // Error handling 
-        std::cout << "Error root is trying to be deleted when there are more elements in the BTree" << std::endl;
+    if(del == root || del->getParent() == nullptr) {  // Base Case 
+        root = del->getChild(0);
+        delete(del);
+        root->setParent(nullptr);
         return;
     }
-
+    Node* parent = del->getParent();
+    int idx = parent->getIdx(value);
+    Node* fuse = (idx == 0)? parent->getChild(1): parent->getChild(idx-1);
+    
+    if(fuse == nullptr || fuse->getSize() < 1) {  // Error handling 
+        std::cout << "Node to be fused is null in TransferFuse(Node*,int) method" << std::endl;
+    }
+        // Swap the values 
+    int swap = (idx==0)? parent->getVal(0): parent->getVal(idx-1);
+    parent->setVal((idx == 0)? 0: idx-1, value);
+    Node* child = del->getChild(0);
+    delete(del);
+    parent->setChild(idx, nullptr);
+    if(child != nullptr) {
+        child->setParent(fuse);
+    }
+    for(int i = idx; i < parent->getSize(); i++) {
+        parent->setChild(i,parent->getChild(i+1));
+    }
+        // Now we merge the two nodes 
+    if(fuse->getSize() > 2) { //The fusing node is going to be cascaded 
+        //toDo 
+        if(idx == 0) {
+            Node* childOfFuse = fuse->getChild(0);
+            fuse->setChild(0, child);
+            cascade(fuse,childOfFuse,swap);
+        } else {
+            cascade(fuse,child,swap);
+        }
+    } else {
+        if(idx == 0) {
+            for(int i = fuse->getSize()+1; i > 0; i--) {
+                fuse->setChild(i,fuse->getChild(i-1));
+            }
+            fuse->setChild(0,child);
+        } else {
+            fuse->setChild(fuse->getSize()+1, child);
+        }
+        fuse->insert(swap);
+    }
+    transferFuse(parent,value);
 }
 
 // Much like BST's we need to go down either the right subtree and look for the element farthest to the left and swap it with the value we want 
 // deleted, or go down the left subtreee and look for the farthest element in the right, either way this means the element we will swap will be 
 // a leaf node, in order to make it seemingly random so one side isn't 'heavier' than the other 
 void BTree::remove(Node* del, int value) {
-    if(del->isLeaf()) { // Error Handling 
-        std::cout << "Error del is a leaf for some reason" << std::endl;
+    if(del->isLeaf() || del->getSize() < 1) { // Error Handling 
+        std::cout << "Error del is a leaf for some reason or size is 0 in remove(Node*,int) method" << std::endl;
         return;
     }
     int idx = 0, swap = 0;
@@ -250,7 +292,7 @@ void BTree::remove(Node* del, int value) {
         temp = temp->getChild(idx);
         while(!temp->isLeaf()) {temp = temp->getChild(temp->getSize());}
         swap = temp->getVal(temp->getSize()-1);
-        temp->setVal(temp-getSize()-1, value);
+        temp->setVal(temp->getSize()-1, value);
     } else { // We will be going into the right subtree 
         temp = temp->getChild(idx+1);
         while(!temp->isLeaf()) {temp = temp->getChild(0);}

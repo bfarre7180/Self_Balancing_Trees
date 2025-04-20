@@ -65,7 +65,32 @@ int main() {
         std::cout << "5 is in the wrong spot, Test Failed" << std::endl;
     }
 
+    std::cout << "\n\n----------------ORIGINAL TREE----------------" << std::endl;
     test->display();
+
+    std::cout << "\n\n------------Tree After Removing 10-----------" << std::endl;
+    test->remove(10);
+    test->display();
+
+    std::cout << "\n\n------------Tree After Removing 36-----------" << std::endl;
+    test->remove(36);
+    test->display();
+
+    std::cout << "\n\n------------Tree After Removing 40-----------" << std::endl;
+    test->remove(40);
+    test->display();
+
+    std::cout << "\n\n------------Tree After Removing 65-----------" << std::endl;
+    test->remove(65);
+    test->display();
+
+    std::cout << "\n\n-----Tree After Removing a # not in tree-----" << std::endl;
+    test->remove(400);
+    test->display();
+
+    //std::cout << "\n\n------------Tree After Removing 40-----------" << std::endl;
+    //test->remove(40);
+    //test->display();
 
     delete(test);
 }
