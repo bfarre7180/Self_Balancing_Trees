@@ -7,7 +7,25 @@
             <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <h1>Self Balancing Trees</h1>
+        <header>
+            <h1>Self Balancing Trees</h1>
+            <p id="status">Disconnected</p>
+        </header>
+
+        <main>
+            <svg id="treeCanvas"></svg>
+        </main>
+
+        <footer>
+            <input type="text"
+                   id="valueInput"
+                   placeholder="Enter a number"
+            >
+            
+            <button id="submitBtn">Insert</button>
+
+            <button id="switchBtn">Switch to Red Black Tree</button>
+        </footer>
 
         <script src="app.js"></script>
     </body>
