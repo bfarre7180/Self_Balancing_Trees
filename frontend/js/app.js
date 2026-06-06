@@ -45,7 +45,7 @@ function handleInsert() {
 }
 
 function switchTreeType() {
-    Console.log("switch Tree Type button clicked";
+    Console.log("switch Tree Type button clicked");
     if (currentTreeType === "btree") {
         currentTreeType = "redblack";
         switchButton.textContent = "Switch to B-Tree";
