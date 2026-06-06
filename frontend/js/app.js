@@ -12,7 +12,7 @@ const statusText = document.getElementById("status");
 initialize();
 
 function initialize() {
-    statusText.textContent = "Connecting to backend..."";
+    statusText.textContent = "Connecting to backend...";
 
     connectWebSocket({
         onOpen: handleConnectionOpen,
