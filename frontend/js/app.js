@@ -47,11 +47,11 @@ function handleInsert() {
 function switchTreeType() {
     if (currentTreeType === "btree") {
         currentTreeType = "redblack";
+        switchButton.textContent = "Switch to B-Tree";
     } else {
         currentTreeType = "btree";
+        switchButton.textContent = "Switch to btree";
     }
-
-    switchButton.textContent = `Switch to ${currentTreeType}`;
 }
 
 function handleConnectionOpen() {
