@@ -1,5 +1,5 @@
-import { connectedWebSocket, sendInsert } from './websocket.js';
-import { renderTree } from './renderer.js';
+//import { connectedWebSocket, sendInsert } from './websocket.js';
+//import { renderTree } from './renderer.js';
 
 let currentTreeType = "btree";
 
