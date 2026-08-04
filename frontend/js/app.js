@@ -14,11 +14,12 @@ initialize();
 function initialize() {
     statusText.textContent = "Connecting to backend...";
 
-    connectWebSocket({
+    /*connectWebSocket({
         onOpen: handleConnectionOpen,
         onMessage: handleServerMessage,
         onClose: handleConnectionClosed
     });
+    */
 
     setupEventListeners();
 }
@@ -45,13 +46,12 @@ function handleInsert() {
 }
 
 function switchTreeType() {
-    Console.log("switch Tree Type button clicked");
     if (currentTreeType === "btree") {
         currentTreeType = "redblack";
         switchButton.textContent = "Switch to B-Tree";
     } else {
         currentTreeType = "btree";
-        switchButton.textContent = "Switch to btree";
+        switchButton.textContent = "Switch to Red Black Tree";
     }
 }
 
